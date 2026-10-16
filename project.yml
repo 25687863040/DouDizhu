@@ -1,6 +1,10 @@
 name: DouDizhu
 options:
   bundleIdPrefix: top.ap7
+  # ⚠️ 必须与 CI 选的 Xcode 匹配：XcodeGen 默认按最新（Xcode 16+）生成
+  # 格式 77 的工程，Xcode 15.x 打开会直接报 "future Xcode project file format (77)"。
+  projectFormat: xcode15_3
+  xcodeVersion: "15.4"
   deploymentTarget:
     iOS: "15.0"
   createIntermediateGroups: true

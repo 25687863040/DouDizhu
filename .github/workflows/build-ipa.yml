@@ -10,7 +10,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+        run: |
+          # 优先用 15.4（与 project.yml 的 projectFormat 匹配）；
+          # 没有就退回 runner 默认版本，工程格式仍能兼容。
+          if [ -d /Applications/Xcode_15.4.app ]; then
+            sudo xcode-select -s /Applications/Xcode_15.4.app
+          fi
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -27,6 +33,7 @@ jobs:
 
       - name: Build (unsigned)
         run: |
+          set -o pipefail
           xcodebuild -project DouDizhu.xcodeproj \
                      -scheme DouDizhu \
                      -configuration Release \
@@ -37,8 +44,9 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      ENABLE_BITCODE=NO \
                      | tee build.log
-          # xcodebuild 失败时把错误行捞出来，便于排查
-          grep -E "error:|warning: .*deprecated" build.log | head -50 || true
+          # 把错误行提到前面，避免日志几千行看不到根因
+          echo "----- 编译错误摘要 -----"
+          grep -E "error:" build.log | sort -u | head -40 || true
 
       - name: Package ipa
         run: |
