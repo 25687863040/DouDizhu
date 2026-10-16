@@ -17,7 +17,7 @@ struct OnlineLobbyContent: View {
                 lobbyForm
             }
         }
-        .onChange(of: client.snapshot) { _, snap in
+        .onChange(of: client.snapshot) { snap in
             guard let snap = snap else { return }
             vm.isOnline = true
             vm.applyOnlineState(snap)

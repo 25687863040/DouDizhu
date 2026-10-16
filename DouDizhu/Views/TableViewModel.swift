@@ -20,8 +20,8 @@ final class TableViewModel: ObservableObject {
     /// 联机模式：为 true 时不自动推进 AI
     var isOnline = false
 
+    private var hintCycle: [[Card]] = []      // 提示候选：每项是一组可出的牌
     private var aiTask: Task<Void, Never>?
-    private var hintCycle: [[[Card]]] = []
 
     var myHand: [Card] { game.hands[.me] ?? [] }
     var landlord: Seat? { game.landlord }
@@ -159,7 +159,6 @@ final class TableViewModel: ObservableObject {
 
     /// 依次推进所有 AI 座位的行动
     private func advanceAIs() async {
-        guard let self else { return }
         var step = 0
         while !Task.isCancelled {
             step += 1

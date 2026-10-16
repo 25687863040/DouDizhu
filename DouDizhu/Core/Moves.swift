@@ -204,9 +204,10 @@ struct HandDecomposition {
 
         // 2. 炸弹
         let counts0 = remaining.counts()
-        for (r, cs) in counts0 where cs.count == 4 {
-            units.append(Unit(combo: Combo(kind: .bomb, mainRank: r, chain: 1, cards: cs), value: 0.9))
-            remaining = remaining.removing(cs)
+        for (r, cs) in counts0 where cs == 4 {
+            let group = remaining.cards(ofRank: r)
+            units.append(Unit(combo: Combo(kind: .bomb, mainRank: r, chain: 1, cards: group), value: 0.9))
+            remaining = remaining.removing(group)
         }
 
         // 3. 贪心拆：顺子 -> 飞机 -> 连对 -> 三张 -> 对子 -> 单张
