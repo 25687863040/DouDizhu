@@ -6,7 +6,7 @@ options:
   projectFormat: xcode15_3
   xcodeVersion: "15.4"
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "16.0"
   createIntermediateGroups: true
   generateEmptyDirectories: false
 

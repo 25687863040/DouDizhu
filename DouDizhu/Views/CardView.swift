@@ -1,5 +1,32 @@
 import SwiftUI
 
+/// 扑克牌尺寸（提到文件级，供 CardView 与 CardRow 共用）
+enum CardSize {
+    case small, medium, large
+
+    var width: CGFloat {
+        switch self {
+        case .small: return 38
+        case .medium: return 52
+        case .large: return 64
+        }
+    }
+    var height: CGFloat {
+        switch self {
+        case .small: return 54
+        case .medium: return 74
+        case .large: return 90
+        }
+    }
+    var fontSize: CGFloat {
+        switch self {
+        case .small: return 15
+        case .medium: return 20
+        case .large: return 25
+        }
+    }
+}
+
 /// 单张扑克牌的绘制。
 /// 支持大（手牌）、中（出牌）、小（背面）三种尺寸。
 struct CardView: View {
@@ -8,32 +35,6 @@ struct CardView: View {
     var isSelected: Bool = false
     var isDimmed: Bool = false
     var showSuit: Bool = true
-
-    enum CardSize {
-        case small, medium, large
-
-        var width: CGFloat {
-            switch self {
-            case .small: return 38
-            case .medium: return 52
-            case .large: return 64
-            }
-        }
-        var height: CGFloat {
-            switch self {
-            case .small: return 54
-            case .medium: return 74
-            case .large: return 90
-            }
-        }
-        var fontSize: CGFloat {
-            switch self {
-            case .small: return 15
-            case .medium: return 20
-            case .large: return 25
-            }
-        }
-    }
 
     var body: some View {
         ZStack {
@@ -166,15 +167,15 @@ struct AvatarView: View {
     var body: some View {
         VStack(spacing: 4) {
             ZStack {
+                let palette: [Color] = isLandlord
+                    ? [Color(red: 0.98, green: 0.72, blue: 0.20),
+                       Color(red: 0.92, green: 0.45, blue: 0.10)]
+                    : [Color(red: 0.72, green: 0.80, blue: 0.90),
+                       Color(red: 0.48, green: 0.58, blue: 0.72)]
                 Circle()
                     .fill(
-                        LinearGradient(colors: isLandlord
-                                       ? [Color(red: 0.98, green: 0.72, blue: 0.20),
-                                          Color(red: 0.92, green: 0.45, blue: 0.10)],
+                        LinearGradient(colors: palette,
                                        startPoint: .top, endPoint: .bottom)
-                        : [Color(red: 0.72, green: 0.80, blue: 0.90),
-                           Color(red: 0.48, green: 0.58, blue: 0.72)],
-                       startPoint: .top, endPoint: .bottom)
                     )
                     .frame(width: 52, height: 52)
                     .shadow(color: .black.opacity(0.2), radius: 3, y: 2)

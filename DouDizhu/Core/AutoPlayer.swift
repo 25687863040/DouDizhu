@@ -39,7 +39,7 @@ struct AutoPlayer {
     // MARK: - 叫地主决策
 
     /// 叫地主：返回 true 表示抢地主
-    func wantLandlord(hand: Hand) -> Bool {
+    mutating func wantLandlord(hand: Hand) -> Bool {
         let counts = hand.counts()
         var score = 0.0
         // 大王

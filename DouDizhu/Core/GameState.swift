@@ -162,7 +162,7 @@ struct GameState: Codable {
     func aiBid(for seat: Seat, skill: AutoPlayer.Skill, seed: UInt64) -> BidAction {
         var ai = AutoPlayer(skill: skill, seed: seed)
         let h = hand(seat)
-        if ai.wantLandlord(h) {
+        if ai.wantLandlord(hand: h) {
             let s = max(currentBid + 1, 2)
             return .bid(min(3, s))
         }
@@ -245,7 +245,7 @@ struct GameState: Codable {
         let base = max(baseScore, 1)
         var mult = multiplier
         let remainingCards = playedCards.values.flatMap { $0 }.count
-        if landlordWon {
+        if landlordWon == true {
             // 地主走完，剩余牌 <= 2 -> 春天，翻倍
             if remainingCards <= 2 { mult *= 2 }
         } else {

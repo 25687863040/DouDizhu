@@ -3,7 +3,7 @@ import Foundation
 // MARK: - 服务端快照
 
 /// 服务端下发的房间状态快照（扁平结构，便于 PHP 直接生成）
-struct OnlineRoomSnapshot: Codable {
+struct OnlineRoomSnapshot: Codable, Equatable {
     var v: Int = 0                    // 版本号，用于长轮询比对
     var started: Bool = false         // 三人是否到齐
     var seatsFilled: [Bool] = [false, false, false]
@@ -52,7 +52,7 @@ struct OnlineRoomSnapshot: Codable {
             } else {
                 g.hands[ls] = []
             }
-            g.handCounts[ls] = counts[s] ?? (hands[s]?.count ?? 0)
+            g.handCounts[ls] = counts[s] ?? hands[s].count
             g.playedCards[ls] = played[s] ?? []
         }
 
@@ -118,7 +118,8 @@ final class RoomClient: ObservableObject {
     @Published var mySeat: Int = -1
     @Published var nickname: String = UserDefaults.standard.string(forKey: "ddz_nick") ?? "玩家"
 
-    private var room: String = ""
+    /// 房间号（视图需要显示，供只读）
+    private(set) var room: String = ""
     private var token: String = ""
     private var version: Int = -1
     private var pollTask: Task<Void, Never>?

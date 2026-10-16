@@ -126,10 +126,9 @@ struct AIPickerView: View {
                     Spacer()
 
                     Button {
-                        let vm = TableViewModel()
                         vm.skill = skill
                         vm.startNewGame()
-                        nav = .table(vm)
+                        showTable = true
                     } label: {
                         Text("开始游戏")
                             .font(.system(size: 17, weight: .bold))
@@ -143,8 +142,8 @@ struct AIPickerView: View {
                     .padding(.bottom, 30)
                 }
             }
-            .navigationDestination(item: $nav) { item in
-                TableView(vm: item.vm)
+            .navigationDestination(isPresented: $showTable) {
+                TableView(vm: vm)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -155,7 +154,8 @@ struct AIPickerView: View {
         }
     }
 
-    @State private var nav: TableNav?
+    @StateObject private var vm = TableViewModel()
+    @State private var showTable = false
 
     private func skillCard(_ s: AutoPlayer.Skill) -> some View {
         Button {
@@ -196,12 +196,6 @@ struct AIPickerView: View {
         case .hard: return "算牌控场，炸弹不轻易出"
         }
     }
-}
-
-/// 导航包装
-struct TableNav: Identifiable {
-    let id = UUID()
-    let vm: TableViewModel
 }
 
 /// 联机大厅（占位，后续由 RoomClient 填充）

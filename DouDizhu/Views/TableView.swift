@@ -185,7 +185,7 @@ struct TableView: View {
 
             // 手牌（扇形微弧）
             handFan
-                .frame(height: CardView.CardSize.large.height + 22)
+                .frame(height: CardSize.large.height + 22)
         }
         .padding(.top, 4)
     }

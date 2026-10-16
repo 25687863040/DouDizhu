@@ -71,8 +71,9 @@ final class TableViewModel: ObservableObject {
         } else {
             selected.insert(card.id)
         }
-        // 选满就尝试提示合法性
-        if let combo = ComboParser.parse(Hand(selected.map { $0 })) {
+        // 选满就尝试提示合法性（selected 存的是牌 id，要映射回 Card）
+        let picked = myHand.filter { selected.contains($0.id) }
+        if let combo = ComboParser.parse(Hand(picked)) {
             message = combo.name
         } else {
             message = ""

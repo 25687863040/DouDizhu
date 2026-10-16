@@ -17,29 +17,28 @@ enum MoveFinder {
             if seen.insert(key).inserted { result.append(c) }
         }
 
-        // 单张
+        // 单张 / 对子 / 三张 / 三带一 / 三带二
         for (r, cs) in counts {
-            add(Combo(kind: .single, mainRank: r, chain: 1, cards: Array(cs.prefix(1))))
-        }
-        // 对子
-        for (r, cs) in counts where cs.count >= 2 {
-            add(Combo(kind: .pair, mainRank: r, chain: 1, cards: Array(cs.prefix(2))))
-        }
-        // 三张 / 三带一 / 三带二
-        for (r, cs) in counts where cs.count >= 3 {
-            let t = Array(cs.prefix(3))
-            add(Combo(kind: .triple, mainRank: r, chain: 1, cards: t))
-            for (wr, wcs) in counts where wr != r {
-                add(Combo(kind: .tripleOne, mainRank: r, chain: 1, cards: t + Array(wcs.prefix(1))))
-                if wcs.count >= 2 {
-                    add(Combo(kind: .triplePair, mainRank: r, chain: 1, cards: t + Array(wcs.prefix(2))))
+            let group = hand.cards(ofRank: r)
+            add(Combo(kind: .single, mainRank: r, chain: 1, cards: Array(group.prefix(1))))
+            if group.count >= 2 {
+                add(Combo(kind: .pair, mainRank: r, chain: 1, cards: Array(group.prefix(2))))
+            }
+            if group.count >= 3 {
+                let t = Array(group.prefix(3))
+                add(Combo(kind: .triple, mainRank: r, chain: 1, cards: t))
+                for (wr, _) in counts where wr != r {
+                    let wing = hand.cards(ofRank: wr)
+                    add(Combo(kind: .tripleOne, mainRank: r, chain: 1, cards: t + Array(wing.prefix(1))))
+                    if wing.count >= 2 {
+                        add(Combo(kind: .triplePair, mainRank: r, chain: 1, cards: t + Array(wing.prefix(2))))
+                    }
                 }
             }
-            // 三张拆两张带牌（部分规则允许，如 333 + 3 拆对）——不枚举，保持标准规则
         }
         // 炸弹
-        for (r, cs) in counts where cs.count == 4 {
-            add(Combo(kind: .bomb, mainRank: r, chain: 1, cards: cs))
+        for (r, cs) in counts where cs == 4 {
+            add(Combo(kind: .bomb, mainRank: r, chain: 1, cards: hand.cards(ofRank: r)))
         }
         // 王炸
         if counts[16] != nil, counts[17] != nil {
@@ -47,18 +46,19 @@ enum MoveFinder {
                       cards: [Card(rank: 16, suit: .jokerSmall), Card(rank: 17, suit: .jokerBig)]))
         }
         // 四带二（4 + 2 单）
-        for (r, cs) in counts where cs.count == 4 {
+        for (r, cs) in counts where cs == 4 {
+            let group = hand.cards(ofRank: r)
             let others = counts.filter { $0.key != r }.flatMap { $0.value }.flatMap { rank -> [Card] in
                 hand.cards(ofRank: rank)
             }
             guard others.count >= 2 else { continue }
-            add(Combo(kind: .fourTwoSingles, mainRank: r, chain: 1, cards: cs + Array(others.prefix(2))))
+            add(Combo(kind: .fourTwoSingles, mainRank: r, chain: 1, cards: group + Array(others.prefix(2))))
             // 四带两对：需要 2 个不同点数的对子
             let pairRanks = counts.filter { $0.key != r && $0.value >= 2 }.keys.sorted()
             if pairRanks.count >= 2 {
                 let w = Array(hand.cards(ofRank: pairRanks[0]).prefix(2))
                     + Array(hand.cards(ofRank: pairRanks[1]).prefix(2))
-                add(Combo(kind: .fourTwoPairs, mainRank: r, chain: 1, cards: cs + w))
+                add(Combo(kind: .fourTwoPairs, mainRank: r, chain: 1, cards: group + w))
             }
         }
         // 顺子 / 连对 / 飞机（连续型走收集器，见文件末尾 bridge）
@@ -273,16 +273,20 @@ struct HandDecomposition {
 }
 
 // MARK: - 连续型枚举的桥接
+//
+// 顺子/连对/飞机的枚举写在独立 static 函数里，但要把结果汇入 allMoves 的
+// 局部数组。用一个文件级收集槽回调来桥接（类型取 (Combo?) -> Void，
+// 与 allMoves 内部的 add 完全一致）。
 
-private var collector: [(Combo) -> Void]?
+private var collector: ((Combo?) -> Void)?
 
 private func result(_ c: Combo) { collector?(c) }
 
 extension MoveFinder {
     /// 把顺子 / 连对 / 飞机的枚举结果并入 allMoves 的收集器
-    static func bridge(_ hand: Hand, add: (Combo?) -> Void) {
+    static func bridge(_ hand: Hand, add: @escaping (Combo?) -> Void) {
         let saved = collector
-        collector = { add($0) }
+        collector = add
         let counts = hand.counts()
         addStraight(counts, hand)
         addDoubleStraight(counts, hand)
